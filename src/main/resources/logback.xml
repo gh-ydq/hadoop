@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+	<property name="springAppName" value="@project.artifactId@"/>
+	<property name="LOG_FILE" value="@log.path@/${springAppName}/log.json"/>
+		<conversionRule conversionWord="stacktrace" converterClass="net.logstash.logback.stacktrace.ShortenedThrowableConverter" />
+	<appender name="logstash" class="net.logstash.logback.appender.LoggingEventAsyncDisruptorAppender">
+		<includeCallerData>true</includeCallerData>
+		<appender class="ch.qos.logback.core.rolling.RollingFileAppender">
+			<file>${LOG_FILE}</file>
+			<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+				<fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+				<maxHistory>35</maxHistory>
+			</rollingPolicy>
+			<encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+				<providers>
+					<timestamp>
+						<timeZone>UTC+8</timeZone>
+					</timestamp>
+					<pattern>
+						<pattern>
+							{
+							"severity": "%level",
+							"service": "${springAppName:-}",
+							"trace": "%X{X-B3-TraceId:-}",
+							"span": "%X{X-B3-SpanId:-}",
+							"parent": "%X{X-B3-ParentSpanId:-}",
+							"exportable": "%X{X-Span-Export:-}",
+							"pid": "${PID:-}",
+							"thread": "%thread",
+							"class": "%logger{40}",
+							"line":"%line",
+							"rest": "%msg",
+							"profile": "@profile@",
+							"stack_trace": "%stacktrace{2147483647,2147483647,2147483647}"
+							}
+						</pattern>
+					</pattern>
+				</providers>
+			</encoder>
+		</appender>
+	</appender>
+	<logger name="org.springframework.data.mongodb.core" level="ERROR"/>
+	<logger name="org.mongodb.driver.connection" level="ERROR"/>
+	<root level="INFO">
+		<appender-ref ref="logstash"/>
+	</root>
+</configuration>

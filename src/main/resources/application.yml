@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url:
+    password:
+    username:
+    hikari:
+      jdbc-url:
+    driver-class-name:
+logging:
+  level: info
